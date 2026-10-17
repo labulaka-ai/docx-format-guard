@@ -1,0 +1,11 @@
+profile: example-master
+source: "示例规则：数值参照国内高校研究生学位论文撰写规范的常见要求，非任何学校官方规则"
+page: {margin_cm: {top: 2.5, bottom: 2.5, left: 3.0, right: 2.5}}
+styles:
+  body:     {style: Normal,    east_asia: 宋体, latin: Times New Roman, size_pt: 12, line_exact_pt: 20, first_line_indent_pt: 24, align: justify}
+  heading1: {style: Heading 1, east_asia: 黑体, latin: Times New Roman, size_pt: 16, bold: true, align: center, pattern: "^第[一二三四五六七八九十]+章"}
+  heading2: {style: Heading 2, east_asia: 黑体, latin: Times New Roman, size_pt: 14, bold: true, align: left, pattern: "^\\d+\\.\\d+\\s"}
+  caption:  {style: Caption,   east_asia: 宋体, latin: Times New Roman, size_pt: 10.5, align: center, pattern: "^[图表]\\d+[-.]\\d+"}
+header: {text: "示例大学硕士学位论文", east_asia: 宋体, size_pt: 10.5, align: center}
+drift:
+  allowed_direct: [bold, italic, superscript, subscript]

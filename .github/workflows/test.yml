@@ -1,0 +1,13 @@
+name: test
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      # LibreOffice 用于渲染回归与目录页码；北大官方模板不入库，相关用例在 CI 中自动跳过（见 tests/test_pku*.py 的 skipif）
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libreoffice-writer fonts-noto-cjk
+      - run: pip install -r requirements.txt
+      - run: pytest -v -rs tests

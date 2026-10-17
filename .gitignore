@@ -1,0 +1,10 @@
+# 官方模板等第三方文件只放本地，不入库
+local-assets/
+# 由官方模板生成的演示件与 WPS 诊断件（含模板原文）
+demo/pku-fixed.docx
+demo/diag/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.pdf

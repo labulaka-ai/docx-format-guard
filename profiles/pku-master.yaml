@@ -1,0 +1,401 @@
+profile: pku-master
+school: 北京大学
+degree: 硕士
+sources:
+  guide:
+    title: 北京大学研究生学位论文写作指南
+    url: https://grs.pku.edu.cn/docs/2019-09/20190911111739293567.pdf
+    version: "研究生院材料下载页标注 2018-03-01；PDF 文件路径为 2019-09"
+    list_page: https://grs.pku.edu.cn/xwgz11/xwsy11/bsxw111/clxz09/index.htm
+  template:
+    title: 硕士研究生学位论文格式模板(2024)
+    url: https://grs.pku.edu.cn/docs/2024-02/20240229092055895909.doc
+    page: https://grs.pku.edu.cn/xwgz11/xwsy11/ssxw111/clxz08/50118yjsy346393.htm
+    published: 2024-02-29
+    note: 官方模板仅下载到 local-assets/（已 .gitignore），不随本仓库分发
+# 字号换算：三号=16pt，四号=14pt，小四=12pt，五号=10.5pt，小五=9pt（指南中对四号、小四已直接注明 pt）
+# 区域：每个区域从 start（正则）或 start_on_role（自动编号后标题文字里已无“第X章”）开始
+regions:
+  - {name: cover}
+  - {name: copyright, start: "^版权声明$"}
+  - {name: abstract_zh, start: "^摘\\s*要$", end_after: "^关键词", default: abs_zh_body}
+  - {name: abstract_en, start: "^ABSTRACT$"}
+  - {name: toc, start: "^目\\s*录$"}
+  - {name: body, start: "^第[一二三四五六七八九十]+章", start_on_role: heading1, default: body}
+  - {name: declaration, start: "^北京大学学位论文原创性声明"}
+ignore_patterns: ["^注：(目录从|以上是)", "^\\(仅为网络示例"]   # 模板里的填写说明文字，不是论文内容
+default_role_after:
+  "^参考文献$": reference
+page:
+  margin_cm: {top: 3.0, bottom: 2.5, left: 2.6, right: 2.6}
+  header_distance_cm: 2.0
+  footer_distance_cm: 1.75
+  paper: A4
+  gutter_cm: 0
+  gutter_pos: left
+  mirror_margins: true
+  clause: "指南 1.11 页面设置：纸张 A4；页边距上、下、左、右、装订线 3.0/2.5/2.6/2.6/0cm；装订线位置左；多页：对称页边距；页眉距边界 2.0cm，页脚距边界 1.75cm"
+header:
+  from_section: 2          # 指南：从“摘要”开始每页须有页眉；模板第 3 节起为摘要
+  even_odd: true
+  even_text: 北京大学硕士学位论文
+  east_asia: 宋体
+  size_pt: 10.5
+  align: center
+  bottom_border_pt: 0.75
+  odd_styleref:            # 奇数页页眉 = 本页所属部分/章的名称，用 STYLEREF 域自动取
+    abstract_zh: Front Heading
+    abstract_en: Abstract Heading
+    toc: Front Heading
+    body: Heading 1
+    declaration: NoTOC Heading 1   # 声明标题改用无大纲级别的样式后，页眉仍显示声明标题
+  clause: "指南 1.11：页眉从摘要开始，五号宋体居中，奇偶页不同；奇数页页眉为相应内容（各章名称），偶数页为“北京大学硕士学位论文”；页眉下横线 0.75 磅"
+page_numbers:
+  none_regions: [cover, copyright, declaration]
+  roman_regions: [abstract_zh, abstract_en, toc]
+  arabic_regions: [body]
+  own_section: [abstract_en, toc, declaration]   # 奇数页页眉内容不同 / 不要页码 → 必须单独成节
+  roman_fmt: upperRoman
+  arabic_fmt: decimal
+  latin: Times New Roman
+  size_pt: 10.5
+  clause: "指南 1.11：封面和原创性声明不要页码；摘要至目录用罗马数字从 I 开始，第一章起用阿拉伯数字从 1 开始；页码 Times New Roman 五号居中，两侧不加修饰线"
+cover:
+  title_table: "^题目"
+  info_table: "^姓\\s*名"
+  date_pattern: "年.*月"
+  title: {east_asia: 黑体, latin: Times New Roman, size_pt: 26, align: center, clause: "指南 1.1：题目一号黑体字，居中"}
+  info: {east_asia: 仿宋, latin: Times New Roman, size_pt: 16, clause: "指南 1.1：作者、学号、院系、专业、研究方向、导师等三号仿宋"}
+  date: {east_asia: 宋体, latin: Times New Roman, size_pt: 16, align: center, clause: "指南 1.1：日期三号宋体，用汉字（如 二〇一四年六月）"}
+layout_pin:                 # 工具兼容措施（非指南条款）
+  regions: [cover, copyright, declaration]
+  clause: "封面（1.1）、版权声明（1.2）、原创性声明（1.10）为固定版式。缺宋体/黑体/仿宋的环境（WPS/LibreOffice for Linux）中替代字体行高大于文档网格 15.6 磅，每行被放大为两格导致溢出，故按 Word 下的行高固定"
+keep_together:              # 工具兼容措施（非指南条款）：签名栏不与声明正文分离
+  regions: [declaration]
+  pattern: "^(论文作者签名|导师签名|日期)"
+  block_start: "^(原创性声明|学位论文使用授权说明)$"   # 两部分各自成块：从小标题到签名栏不拆页
+  orphan_min_paras: 3        # 声明块超过一页时，至少带 3 段正文和签名栏一起到下一页
+  clause: "排版惯例（指南 1.10 未规定分页）：签名栏与所签声明正文同页，避免签名栏单独成页"
+fixed_text:
+  copyright: {region: copyright, template: local-assets/pku/master-2024.docx, clause: "指南 1.2：版权声明全校统一内容与格式，直接使用模板"}
+  declaration: {region: declaration, template: local-assets/pku/master-2024.docx, clause: "指南 1.10：原创性声明和使用授权说明全校统一，内容与格式不得改动"}
+abstract:
+  zh_kw_prefix: "关键词："
+  zh_kw_prefix_re: "^关键词\\s*[:：]?\\s*"
+  zh_kw_min: 3
+  zh_kw_max: 5
+  en_kw_prefix: "KEY WORDS: "
+  en_kw_prefix_re: "^(?i:key\\s*words?)\\s*[:：]?\\s*"
+  clause: "指南 1.3/1.4：关键词 3～5 个，“，”分隔，从新的一行写；英文摘要标点用英文标点，“KEY WORDS”大写，每个关键词首字母大写，半角逗号分隔；摘要中不能出现图片、表格"
+toc:
+  levels: 3
+  exclude_regions: [cover, copyright, abstract_zh, abstract_en, toc, declaration]
+  heading_pattern: "^目\\s*录$"
+  styles:
+    toc 1: {east_asia: 黑体, latin: Times New Roman, size_pt: 12, line_exact_pt: 20, space_before_pt: 6, space_after_pt: 0, left_indent_pt: 0, clause: "指南 1.5：章标题行黑体小四，固定行距 20 磅，段前 6 磅、段后 0"}
+    toc 2: {east_asia: 宋体, latin: Times New Roman, size_pt: 12, line_exact_pt: 20, space_before_pt: 0, space_after_pt: 0, left_indent_pt: 12, clause: "指南 1.5：其他行宋体小四，固定行距 20 磅，段前段后 0；一级节标题缩进 1 个汉字符"}
+    toc 3: {east_asia: 宋体, latin: Times New Roman, size_pt: 12, line_exact_pt: 20, space_before_pt: 0, space_after_pt: 0, left_indent_pt: 24, clause: "指南 1.5：二级节标题缩进 2 个汉字符"}
+  clause: "指南 1.5：目录列到三级标题（章、一级节、二级节），从第一章开始，目录之前的内容及目录本身不列入"
+footnotes:
+  style: footnote text
+  east_asia: 宋体
+  latin: Times New Roman
+  size_pt: 9
+  line_single: true
+  space_before_pt: 0
+  space_after_pt: 0
+  hanging_chars: 1.5
+  num_fmt: decimalEnclosedCircle
+  num_restart: eachPage
+  clause: "指南 1.7.3 脚注：小五号，汉字宋体、英文 Times New Roman，单倍行距，段前段后 0，悬挂缩进 1.5 字符；序号①②③按页编排，注内序号用正文字体非上标，后空半个汉字符；正文中序号上标"
+tables:
+  cell: {style: Table Text, east_asia: 宋体, latin: Times New Roman, size_pt: 11, line_single: true, space_before_pt: 3, space_after_pt: 3, clause: "指南 1.7.4：表格内文字宋体 11pt，单倍行距，段前段后 3 磅"}
+  caption_gap: "\u3000"
+  clause: "指南 1.7.4：表序表名置于表上方，图序图名置于图下方，序号与名称之间空一个汉字符"
+equations:
+  mode: center
+  paren: "()"
+  clause: "指南 1.7.4：表达式按章编号（式 2.1），序号用圆括号置于右边行末；附录中为 (A-1)；正文引用写作“式（x.y）”"
+numbering:
+  levels:
+    - {role: heading1, fmt: chineseCounting, text: "第%1章\u3000", display: "第{}章\u3000"}
+    - {role: heading2, fmt: decimal, text: "%1.%2\u3000", legal: true, display: "{}.{}\u3000"}
+    - {role: heading3, fmt: decimal, text: "%1.%2.%3\u3000", legal: true, display: "{}.{}.{}\u3000"}
+    - {role: heading4, fmt: decimal, text: "%1.%2.%3.%4\u3000", legal: true, display: "{}.{}.{}.{}\u3000"}
+  unnumbered: "^(参考文献|附录|致谢|主要符号对照表)"
+  manual_prefix: "^(第[一二三四五六七八九十]+章|\\d+(\\.\\d+){1,3})[\\s\u3000]*"
+  clause: "指南 1.7.1：章标题“第一章 ×××”，节标题 1.1 / 1.1.1 / 1.1.1.1；编号由多级列表自动生成"
+references:
+  standard: GB/T 7714-2015
+  require_type_tag: false    # 指南 A.4.6（基于 2005 版）：非电子文献类型标识可选；strict_2015 模式设为 true
+  max_authors: 3
+  clause: "指南 1.8 与附录 A；GB/T 7714-2015 第 4、7、8 章"
+styles:
+  # ---- 前置部分 ----
+  abs_heading:
+    region: abstract_zh
+    first: true
+    style: Front Heading
+    pattern: "^摘\\s*要$"
+    east_asia: 黑体
+    latin: Times New Roman
+    size_pt: 16
+    bold: false
+    align: center
+    line_single: true
+    space_before_pt: 24
+    space_after_pt: 18
+    outline_body: true
+    clause: "指南 1.3：“摘要”二字黑体三号，居中，单倍行距，段前 24 磅、段后 18 磅；1.5：目录之前的内容及目录本身不列入目录"
+  abs_zh_kw:
+    region: abstract_zh
+    style: Normal
+    require_style: false
+    pattern: "^关键词"
+    east_asia: 宋体
+    latin: Times New Roman
+    size_pt: 12
+    align: justify
+    line_exact_pt: 20
+    space_before_pt: 0
+    space_after_pt: 0
+    first_line_indent_chars: 2
+    clause: "指南 1.3：摘要正文小四号宋体、两端对齐、首行缩进 2 个汉字符、固定行距 20 磅、段前段后 0；关键词 3～5 个，以“，”分隔，从新的一行撰写"
+  abs_zh_body:
+    region: abstract_zh
+    style: Normal
+    require_style: false
+    east_asia: 宋体
+    latin: Times New Roman
+    size_pt: 12
+    align: justify
+    line_exact_pt: 20
+    space_before_pt: 0
+    space_after_pt: 0
+    first_line_indent_chars: 2
+    clause: "指南 1.3：摘要正文小四号宋体，两端对齐，首行缩进 2 个汉字符，固定行距 20 磅，段前段后 0 磅"
+  en_title:
+    region: abstract_en
+    first: true
+    next_default: en_meta
+    style: English Title
+    east_asia: 宋体
+    latin: Arial
+    size_pt: 16
+    bold: false
+    align: center
+    line_single: true
+    space_before_pt: 24
+    space_after_pt: 18
+    clause: "指南 1.4：英文题目 Arial 三号，居中，单倍行距，段前 24 磅、段后 18 磅"
+  en_meta:
+    region: abstract_en
+    style: English Meta
+    east_asia: 宋体
+    latin: Times New Roman
+    size_pt: 12
+    align: center
+    line_exact_pt: 20
+    space_before_pt: 0
+    space_after_pt: 0
+    clause: "指南 1.4：作者、专业、导师姓名 Times New Roman 小四，居中，固定行距 20 磅，段前段后 0"
+  abs_en_heading:
+    region: abstract_en
+    pattern: "^ABSTRACT$"
+    next_default: en_body
+    style: Abstract Heading
+    east_asia: 宋体
+    latin: Arial
+    size_pt: 12
+    bold: false
+    align: center
+    line_exact_pt: 20
+    space_before_pt: 8
+    space_after_pt: 6
+    outline_body: true
+    clause: "指南 1.4：“ABSTRACT”Arial 小四，居中，固定行距 20 磅，段前 8 磅、段后 6 磅；1.5：目录之前的内容不列入目录"
+  en_kw:
+    region: abstract_en
+    pattern: "^(?i:key\\s*words?)"
+    style: English Abstract
+    east_asia: 宋体
+    latin: Times New Roman
+    size_pt: 12
+    align: justify
+    line_exact_pt: 20
+    space_before_pt: 0
+    space_after_pt: 0
+    first_line_indent_chars: 2
+    clause: "指南 1.4：KEY WORDS 与正文同格式（Times New Roman 小四，两端对齐，固定行距 20 磅），“KEY WORDS”大写，关键词首字母大写，半角逗号分隔"
+  en_body:
+    region: abstract_en
+    style: English Abstract
+    east_asia: 宋体
+    latin: Times New Roman
+    size_pt: 12
+    align: justify
+    line_exact_pt: 20
+    space_before_pt: 0
+    space_after_pt: 0
+    first_line_indent_chars: 2   # 指南未规定首行缩进，取官方模板实际值（2 字符）
+    clause: "指南 1.4：英文摘要正文 Times New Roman 小四，两端对齐，标点用英文标点，固定行距 20 磅，段前段后 0"
+  toc_heading:
+    region: toc
+    first: true
+    style: Front Heading
+    pattern: "^目\\s*录$"
+    east_asia: 黑体
+    latin: Times New Roman
+    size_pt: 16
+    bold: false
+    align: center
+    line_single: true
+    space_before_pt: 24
+    space_after_pt: 18
+    outline_body: true
+    clause: "指南 1.5：“目录”二字格式同章标题（黑体三号居中，单倍行距，段前 24 磅段后 18 磅）；目录本身不列入目录"
+  # ---- 正文 ----
+  heading1:
+    keep_next: true          # 排版惯例（非指南条款）：标题与下段同页，避免标题落在页底
+    num_level: 0
+    style: Heading 1
+    pattern: "^(第[一二三四五六七八九十]+章|参考文献$|附录|致谢$|主要符号对照表$)"
+    resets_default: true
+    east_asia: 黑体
+    latin: Times New Roman
+    size_pt: 16
+    bold: false
+    align: center
+    line_single: true
+    space_before_pt: 24
+    space_after_pt: 18
+    clause: "指南 1.7.1：各章标题黑体三号字，居中书写，单倍行距，段前空 24 磅，段后空 18 磅；目录中和章平级的其它标题也用这一格式；1.8：“参考文献”四个字与章标题格式相同"
+  heading4:
+    keep_next: true          # 排版惯例（非指南条款）：标题与下段同页，避免标题落在页底
+    num_level: 3
+    style: Heading 4
+    pattern: "^\\d+\\.\\d+\\.\\d+\\.\\d+\\s"
+    east_asia: 黑体
+    latin: Times New Roman
+    size_pt: 12
+    bold: false
+    align: left
+    line_exact_pt: 20
+    space_before_pt: 12
+    space_after_pt: 6
+    clause: "指南 1.7.1：三级节标题黑体小四号（12pt）居左，固定行距 20 磅，段前 12 磅，段后 6 磅"
+  heading3:
+    keep_next: true          # 排版惯例（非指南条款）：标题与下段同页，避免标题落在页底
+    num_level: 2
+    style: Heading 3
+    pattern: "^\\d+\\.\\d+\\.\\d+\\s"
+    east_asia: 黑体
+    latin: Times New Roman
+    size_pt: 13
+    bold: false
+    align: left
+    line_exact_pt: 20
+    space_before_pt: 12
+    space_after_pt: 6
+    clause: "指南 1.7.1：二级节标题黑体 13pt 居左，固定行距 20 磅，段前 12 磅，段后 6 磅"
+  heading2:
+    keep_next: true          # 排版惯例（非指南条款）：标题与下段同页，避免标题落在页底
+    num_level: 1
+    style: Heading 2
+    pattern: "^\\d+\\.\\d+\\s"
+    east_asia: 黑体
+    latin: Times New Roman
+    size_pt: 14
+    bold: false
+    align: left
+    line_exact_pt: 20
+    space_before_pt: 24
+    space_after_pt: 6
+    clause: "指南 1.7.1：一级节标题黑体四号（14pt）居左，固定行距 20 磅，段前 24 磅，段后 6 磅"
+  figure_caption:
+    style: Figure Caption
+    require_style: false     # 指南未规定样式名，只规定格式
+    pattern: "^(续)?图\\s*([A-Z]|\\d+)\\.\\d+"
+    east_asia: 宋体
+    latin: Times New Roman
+    size_pt: 11
+    align: center
+    line_single: true
+    space_before_pt: 6
+    space_after_pt: 12
+    clause: "指南 1.7.4 图：图序与图名置于图的下方，宋体 11pt 居中，段前 6 磅，段后 12 磅，单倍行距"
+  table_caption:
+    style: Table Caption
+    require_style: false
+    pattern: "^(续)?表\\s*([A-Z]|\\d+)\\.\\d+"
+    east_asia: 宋体
+    latin: Times New Roman
+    size_pt: 11
+    align: center
+    line_single: true
+    space_before_pt: 12
+    space_after_pt: 6
+    clause: "指南 1.7.4 表：表序与表名置于表的上方，宋体 11pt 居中，段前 12 磅，段后 6 磅，单倍行距"
+  reference:
+    style: Reference
+    require_style: false
+    east_asia: 宋体
+    latin: Times New Roman
+    size_pt: 10.5
+    line_exact_pt: 16
+    space_before_pt: 3
+    space_after_pt: 0
+    hanging_indent_pt: 21    # 附录 A.2/A.4.3 示例：每条文献悬挂缩进 2 个汉字符（五号 10.5pt × 2）
+    clause: "指南 1.8：参考文献表正文用五号字，汉字宋体，英文 Times New Roman，固定行距 16 磅，段前 3 磅，段后 0 磅；附录 A：悬挂缩进 2 个汉字符"
+  body:
+    style: Normal
+    require_style: false
+    east_asia: 宋体
+    latin: Times New Roman
+    size_pt: 12
+    align: justify
+    line_exact_pt: 20
+    space_before_pt: 0
+    space_after_pt: 0
+    first_line_indent_chars: 2
+    clause: "指南 1.7.2：小四号（12pt），汉字宋体，英文和阿拉伯数字 Times New Roman，两端对齐，首行缩进 2 个汉字符，固定行距 20 磅，段前段后 0 磅"
+  equation:
+    has_math: block
+    style: Equation
+    require_style: false
+    east_asia: 宋体
+    latin: Times New Roman
+    size_pt: 12
+    align: left              # 居中由居中制表位实现，序号由行末右对齐制表位实现
+    line_single: true
+    space_before_pt: 6
+    space_after_pt: 6
+    clause: "指南 1.7.4 表达式：表达式居中书写（或缩进 2 汉字符，全文统一），序号用圆括号括起置于右边行末；单倍行距，段前段后 6 磅"
+  inline_math:
+    has_math: inline
+    style: Body Text Math
+    require_style: false
+    east_asia: 宋体
+    latin: Times New Roman
+    size_pt: 12
+    align: justify
+    line_single: true
+    space_before_pt: 3
+    space_after_pt: 3
+    first_line_indent_chars: 2
+    clause: "指南 1.7.4：段落中有行内公式时，该段单倍行距，段前段后 3 磅"
+  table_note:
+    after_table: true
+    pattern: "^(注|资料来源|来源|数据来源)\\s*[:：]"
+    style: Table Note
+    require_style: false
+    east_asia: 宋体
+    latin: Times New Roman
+    size_pt: 10.5
+    align: left
+    line_single: true
+    space_before_pt: 6
+    space_after_pt: 12
+    clause: "指南 1.7.4：表下方注明资料来源，宋体五号，单倍行距，段前 6 磅，段后 12 磅"
+drift:
+  allowed_direct: [bold, italic, superscript, subscript]
