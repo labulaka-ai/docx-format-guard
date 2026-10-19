@@ -31,6 +31,8 @@ This tool exists for those four problems: check first, then fix, re-check every 
 |---|---|
 | `ingest` | Derives a **draft rule pack** from a school's template .docx: page setup, styles (fonts, size, line spacing, indents, alignment), header and page-number formats are read from the template; rules that exist only in the written guide (region semantics, reference-list rules, footnote numbering) are reported as not derived. Drafts must be reviewed against the guide before they are trusted |
 
+| `tdiff` | **Channel 2**: compares the thesis directly against the school template, role by role — never reads the rule pack; the template document itself is the ground truth (modal format of the template's exemplar paragraphs per role, page setup included). Unknown styles are listed as uncompared; an internally inconsistent template triggers warnings. Its inputs are fully independent of `check` (channel 1), so a gap must fool both channels to survive |
+
 | `coverage` | Coverage ledger: censuses the document (styles actually used, roles, sections) against the rule pack and marks every dimension ruled / waived (listed under `waive:` in the profile) / uncovered; styles the pack does not know are named explicitly. Exits 1 on partial coverage — uncovered means unexamined, not fine |
 
 | `check` | Checks formatting against a rule pack; each issue reports expected value, actual value, cause, and the guide clause; `--json` for machine-readable output |

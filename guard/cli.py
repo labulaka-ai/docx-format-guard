@@ -17,6 +17,8 @@ def main(argv=None):
     ig.add_argument("docx"); ig.add_argument("-o", required=True); ig.add_argument("--report")
     cv = sp.add_parser("coverage", help="覆盖台账：这份规则包对这篇文档到底检了哪些维度、哪些是盲区")
     cv.add_argument("docx"); cv.add_argument("--profile", required=True); cv.add_argument("--json", action="store_true")
+    td = sp.add_parser("tdiff", help="通道二：论文与模板逐角色直比（不读规则包，与 check 互为独立通道）")
+    td.add_argument("docx"); td.add_argument("template"); td.add_argument("--json", action="store_true")
     g.add_argument("--comment"); g.add_argument("--revision")
     a = ap.parse_args(argv)
     if a.cmd == "ingest":
@@ -53,6 +55,11 @@ def main(argv=None):
     if a.cmd == "reply":
         cid = rv.reply_comment(a.docx, a.o, a.comment, a.text, a.author) if a.comment else rv.comment_on_revision(a.docx, a.o, a.revision, a.text, a.author)
         print(f"已写入批注 #{cid} → {a.o}"); return 0
+    if a.cmd == "tdiff":
+        from .tdiff import tdiff, format_tdiff
+        res = tdiff(a.docx, a.template)
+        print(json.dumps(res, ensure_ascii=False, indent=1) if a.json else format_tdiff(res))
+        return 1 if (res["findings"] or res["unknown"] or res["page_setup"]) else 0
     prof = load_profile(a.profile)
     if a.cmd == "coverage":
         from .coverage import coverage, format_coverage
