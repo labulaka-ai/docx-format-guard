@@ -31,6 +31,8 @@ This tool exists for those four problems: check first, then fix, re-check every 
 |---|---|
 | `ingest` | Derives a **draft rule pack** from a school's template .docx: page setup, styles (fonts, size, line spacing, indents, alignment), header and page-number formats are read from the template; rules that exist only in the written guide (region semantics, reference-list rules, footnote numbering) are reported as not derived. Drafts must be reviewed against the guide before they are trusted |
 
+| `coverage` | Coverage ledger: censuses the document (styles actually used, roles, sections) against the rule pack and marks every dimension ruled / waived (listed under `waive:` in the profile) / uncovered; styles the pack does not know are named explicitly. Exits 1 on partial coverage — uncovered means unexamined, not fine |
+
 | `check` | Checks formatting against a rule pack; each issue reports expected value, actual value, cause, and the guide clause; `--json` for machine-readable output |
 | `fix` | Fixes what can be fixed and writes a new file (the original is never overwritten); keeps tracked changes (w:ins / w:del / formatting changes) and comments; re-checks afterwards and lists what is left |
 | `diff` | Compares two versions of a .docx, aligns paragraphs by text, and reports **formatting** changes only (style, CJK/Latin font, size, bold, line spacing, spacing before/after, indents, alignment) |

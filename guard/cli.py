@@ -15,6 +15,8 @@ def main(argv=None):
     r.add_argument("--author", default="Author"); g = r.add_mutually_exclusive_group(required=True)
     ig = sp.add_parser("ingest", help="从学校模板 .docx 推导草案规则包（模板里读得到的才写，读不到的在报告里明说）")
     ig.add_argument("docx"); ig.add_argument("-o", required=True); ig.add_argument("--report")
+    cv = sp.add_parser("coverage", help="覆盖台账：这份规则包对这篇文档到底检了哪些维度、哪些是盲区")
+    cv.add_argument("docx"); cv.add_argument("--profile", required=True); cv.add_argument("--json", action="store_true")
     g.add_argument("--comment"); g.add_argument("--revision")
     a = ap.parse_args(argv)
     if a.cmd == "ingest":
@@ -52,6 +54,11 @@ def main(argv=None):
         cid = rv.reply_comment(a.docx, a.o, a.comment, a.text, a.author) if a.comment else rv.comment_on_revision(a.docx, a.o, a.revision, a.text, a.author)
         print(f"已写入批注 #{cid} → {a.o}"); return 0
     prof = load_profile(a.profile)
+    if a.cmd == "coverage":
+        from .coverage import coverage, format_coverage
+        cov = coverage(a.docx, prof)
+        print(json.dumps(cov, ensure_ascii=False, indent=1) if a.json else format_coverage(cov))
+        return 1 if cov["verdict"] != "complete" else 0
     if a.cmd == "check":
         iss = check(a.docx, prof)
         if a.json: print(json.dumps(iss, ensure_ascii=False, indent=1))
