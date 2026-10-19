@@ -128,9 +128,6 @@ CI (GitHub Actions) installs LibreOffice and runs the suite. The official PKU te
 - `diff` aligns paragraphs by text and compares paragraph formatting only, not tables, headers/footers, or sections;
 - "Nearly empty" pages caused by template placeholder blank lines or empty chapters are reported, never fixed by deleting your paragraphs.
 
-## Relationship to Anthropic's docx skill
-
-None. This project is an independent implementation (python-docx + lxml + LibreOffice + PyMuPDF) and uses no code, prompts, templates, or XSDs from the docx skill in anthropics/skills.
 
 ## Repository layout
 

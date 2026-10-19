@@ -128,9 +128,6 @@ CI（GitHub Actions）装 LibreOffice 后运行；北大官方模板不入库，
 - `diff` 按文字对齐段落，只比较段落格式，不比较表格、页眉页脚和分节；
 - 模板占位空段、空章节导致的“几乎空的页”只提示，不删除用户段落。
 
-## 与 Anthropic docx skill 的关系
-
-无关。本项目是独立实现（python-docx + lxml + LibreOffice + PyMuPDF），没有使用 anthropics/skills 中 docx skill 的任何代码、提示词、模板或 XSD。
 
 ## 文件结构
 
