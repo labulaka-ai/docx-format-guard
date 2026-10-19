@@ -13,8 +13,16 @@ def main(argv=None):
     r = sp.add_parser("reply", help="回复批注 --comment ID，或在修订处加批注 --revision ID")
     r.add_argument("docx"); r.add_argument("-o", required=True); r.add_argument("--text", required=True)
     r.add_argument("--author", default="Author"); g = r.add_mutually_exclusive_group(required=True)
+    ig = sp.add_parser("ingest", help="从学校模板 .docx 推导草案规则包（模板里读得到的才写，读不到的在报告里明说）")
+    ig.add_argument("docx"); ig.add_argument("-o", required=True); ig.add_argument("--report")
     g.add_argument("--comment"); g.add_argument("--revision")
     a = ap.parse_args(argv)
+    if a.cmd == "ingest":
+        from .ingest import derive_profile, write_profile, format_report
+        prof, rep = derive_profile(a.docx); write_profile(prof, a.o)
+        txt = format_report(rep)
+        if a.report: open(a.report, "w", encoding="utf-8").write(txt)
+        print(txt); print(f"草案规则包 → {a.o}（草案：引用前须按学校指南复核）"); return 0
     if a.cmd == "pages":
         from .layout import summarize
         rows = summarize(a.docx)
