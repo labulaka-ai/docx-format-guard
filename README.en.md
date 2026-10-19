@@ -29,6 +29,8 @@ This tool exists for those four problems: check first, then fix, re-check every 
 
 | Command | What it does |
 |---|---|
+| `ingest` | Derives a **draft rule pack** from a school's template .docx: page setup, styles (fonts, size, line spacing, indents, alignment), header and page-number formats are read from the template; rules that exist only in the written guide (region semantics, reference-list rules, footnote numbering) are reported as not derived. Drafts must be reviewed against the guide before they are trusted |
+
 | `check` | Checks formatting against a rule pack; each issue reports expected value, actual value, cause, and the guide clause; `--json` for machine-readable output |
 | `fix` | Fixes what can be fixed and writes a new file (the original is never overwritten); keeps tracked changes (w:ins / w:del / formatting changes) and comments; re-checks afterwards and lists what is left |
 | `diff` | Compares two versions of a .docx, aligns paragraphs by text, and reports **formatting** changes only (style, CJK/Latin font, size, bold, line spacing, spacing before/after, indents, alignment) |
@@ -65,6 +67,9 @@ Common commands:
 
 ```bash
 # Check
+# No rule pack for your school yet? Derive a draft from its official template, then review it against the written guide
+.venv/bin/python -m guard.cli ingest school-template.docx -o profiles/school-draft.yaml
+
 .venv/bin/python -m guard.cli check thesis.docx --profile profiles/pku-master.yaml
 # Fix (writes a new file; with LibreOffice present, TOC page numbers are computed too; --no-toc-pages turns that off)
 .venv/bin/python -m guard.cli fix thesis.docx -o thesis-fixed.docx --profile profiles/pku-master.yaml
@@ -121,7 +126,7 @@ CI (GitHub Actions) installs LibreOffice and runs the suite. The official PKU te
 
 - **TOC page numbers come from the LibreOffice layout**; Word's layout may differ by a page. Use "Update field" in Word after opening;
 - **Substitute fonts**: to keep the layout from overflowing when fonts are missing, line heights on the cover, copyright notice, and originality declaration are pinned to their Word values. Word's line-height rules on the document grid have not been verified case by case;
-- So far **PKU master's** is the only real school rule pack; doctoral theses and other schools need their own rule packs;
+- The only complete rule pack shipped so far is **PKU master's** (with guide clause citations). For other schools, `ingest` derives a draft pack from the official template for review against the written guide — but a template can deviate from its own school's guide (the PKU template itself accounts for 154 measured deviations), so derived packs are drafts, never guarantees;
 - The official template is a .doc, tested after LibreOffice conversion; a few deviations (empty odd-page headers, no mirror margins) may come from the conversion;
 - References are parsed against GB/T 7714 heuristically; mixed numeric/author-year systems and unparseable entries only get suggestions;
 - Tracked changes inside headers, footers, and footnotes are not yet handled; replying to a comment does not mark the parent as resolved;
@@ -138,7 +143,9 @@ docx-format-guard/
 ├── LICENSE                  # Apache-2.0 (code)
 ├── requirements.txt
 ├── guard/
-│   ├── cli.py               # check / fix / diff / review / reply / pages
+│   ├── cli.py               # check / fix / diff / review / reply / pages / ingest
+
+│   ├── ingest.py            # school template .docx -> draft rule pack + derivation report
 │   ├── core.py              # Effective formatting, role detection, check and fix pipeline
 │   ├── features.py          # Page setup, headers/page-number sections, cover, abstracts, TOC, footnotes, tables, equations, numbering, layout compatibility
 │   ├── references.py        # GB/T 7714 references

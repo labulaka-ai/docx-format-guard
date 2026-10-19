@@ -20,6 +20,7 @@ description: >-
 
 ## 总流程
 
+0. **没有现成规则包的新学校**：先 `ingest <学校模板.docx> -o draft.yaml` 推导草案，再按该校书面指南逐项复核（模板可能与指南不一致，北大模板实测有 154 处）；推导报告里标为「未推导」的类别不要假装已覆盖，复核完才用草案跑 check/fix。
 1. **先看批注和修订**：`review thesis.docx`。告诉用户有多少处修订、多少条批注，谁写的。
 2. **检查**：`check thesis.docx --profile <规则包>`（需要时加 `--json`）。按问题类别汇总，不要逐条倾倒；区分“可修复”和“只给建议”。
 3. **修复到新文件**：`fix thesis.docx -o thesis-fixed.docx --profile <规则包>`。永远输出到新文件。

@@ -29,6 +29,8 @@
 
 | 命令 | 作用 |
 |---|---|
+| `ingest` | 从学校模板 .docx 推导**草案规则包**：页面设置、样式（字体/字号/行距/缩进/对齐）、页眉、页码格式，模板里有的就读出来；只存在于书面指南里的规则（分区语义、参考文献著录、脚注编号等）读不出，在推导报告里明说。草案须按指南复核后才可信 |
+
 | `check` | 按规则包检查格式，每条问题给出期望值、实际值、原因和指南条款；`--json` 输出机器可读结果 |
 | `fix` | 修复可修复的问题，输出到新文件（不覆盖原稿）；保留修订（w:ins / w:del / 格式修订）与批注；修完自动复查，列出剩余问题 |
 | `diff` | 比较改稿前后两份 docx，按文字对齐段落，只报告**格式**变化（样式、中西文字体、字号、加粗、行距、段前段后、缩进、对齐） |
@@ -64,6 +66,9 @@ sudo apt-get install libreoffice-writer   # macOS: brew install --cask libreoffi
 常用命令：
 
 ```bash
+# 没有现成规则包时：先从学校官方模板推导草案，再按该校指南复核
+.venv/bin/python -m guard.cli ingest school-template.docx -o profiles/school-draft.yaml
+
 # 检查
 .venv/bin/python -m guard.cli check thesis.docx --profile profiles/pku-master.yaml
 # 修复（输出新文件；有 LibreOffice 时同时计算目录页码，--no-toc-pages 关闭）
@@ -121,7 +126,7 @@ CI（GitHub Actions）装 LibreOffice 后运行；北大官方模板不入库，
 
 - **目录页码按 LibreOffice 排版计算**，Word 排版可能差一页；打开后可在 Word 里“更新域”；
 - **替代字体环境**：为避免缺字体时版面溢出，封面、版权声明、原创性声明按 Word 下的行高固定；Word 在文档网格下的行高算法未逐项实测；
-- 规则包目前只有**北大硕士**一个真实学校；博士、其他学校需另写规则包；
+- 随仓附带的完整规则包目前只有**北大硕士**一个（带指南条款出处）；其他学校可用 `ingest` 从官方模板推导草案、再按指南复核成正式包——但模板本身可能与本校指南不一致（北大官方模板自检实测有 154 处归因为「模板与规范不一致」），推导结果因此只作草案，不作保证；
 - 官方模板原件是 .doc，经 LibreOffice 转换后测试，个别偏差（如奇数页页眉为空、无对称页边距）可能是转换造成的；
 - 参考文献按 GB/T 7714 解析，属启发式；顺序编码制与著者-出版年制混用、无法解析的条目只给建议；
 - 页眉页脚和脚注中的修订暂不处理；回复批注后不会把父批注标为“已解决”；
@@ -138,7 +143,9 @@ docx-format-guard/
 ├── LICENSE                  # Apache-2.0（代码）
 ├── requirements.txt
 ├── guard/
-│   ├── cli.py               # check / fix / diff / review / reply / pages
+│   ├── cli.py               # check / fix / diff / review / reply / pages / ingest
+
+│   ├── ingest.py            # 学校模板 .docx → 草案规则包推导＋推导报告
 │   ├── core.py              # 有效格式计算、角色识别、检查与修复主流程
 │   ├── features.py          # 页面、页眉页码分节、封面、摘要、目录、脚注、表格、公式、编号、版面兼容
 │   ├── references.py        # GB/T 7714 参考文献
