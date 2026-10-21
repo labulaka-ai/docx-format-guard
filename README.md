@@ -109,7 +109,7 @@ soffice --headless --convert-to docx --outdir local-assets/pku local-assets/pku/
 
 ## 可信度：测试与实测
 
-**测试体系**（本地全套 `pytest` 实际结果：**100 passed**，0 failed，0 skipped）：
+**测试体系**（本地全套 `pytest` 共 114 项；在 [钉死环境](docs/test-environment.md)（官方模板＋字体映射）下实测 **109 passed / 5 failed**——5 项失败全部已归因并列入该文档的已知红榜：4 项是缺专有字体（宋体/黑体/仿宋）的分页度量差异、1 项是测试辅助函数对 PDF 文本块顺序的假设；模板未下载到 `local-assets/` 时，依赖模板的 54 项自动跳过）：
 
 - **注入漂移**：在合规稿上注入 9 类真实漂移（直接格式覆盖、中西文字体错配、主题字体、外来粘贴样式、行距/页边距、页眉、题注、标题、参考文献），逐类断言能检出、修复后逐段与 golden 一致；全部叠加再加修订批注也能修回；
 - **修订与批注**：fix 处理修订插入内部的文字并保留修订标记；`review` 覆盖插入、删除、移动、格式修订、段落标记修订等；`reply` 写出的回复挂在父批注下；
@@ -118,7 +118,7 @@ soffice --headless --convert-to docx --outdir local-assets/pku local-assets/pku/
 - **北大官方模板自检**：当前规则包在官方模板（.doc 经 LibreOffice 转 .docx）上报出 199 处问题，**全部归因**，测试保证新出现未归因的问题即失败。其中“模板与规范不一致”154 处，其余为模板结构、模板自述（示例文献未核准、目录为空占位）、模板占位内容、规则口径待确认（2 处）、环境兼容等；
 - **`diff`**：注入漂移必报、自身对比为空、修复后与 golden 对比为空。
 
-CI（GitHub Actions）装 LibreOffice 后运行；北大官方模板不入库，依赖模板的 54 个用例在 CI 中自动跳过，其余 46 个照常运行。
+CI（GitHub Actions）装 LibreOffice 后运行；北大官方模板不入库，依赖模板的 54 个用例在 CI 中自动跳过，其余 60 个照常运行。
 
 **WPS 实测**（WPS for Linux，缺宋体/黑体/仿宋，用 Noto CJK 等替代）：封面在一页内、无空白页、原创性声明不进目录、目录页码正确、标题编号与奇偶页页眉正确、声明签名栏不再单独成页；可见页与 LibreOffice 排版逐页一致。
 

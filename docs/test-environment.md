@@ -1,6 +1,6 @@
 # 测试环境规格（钉死版，2026-10-21 实测）
 
-全套测试（108 项）要可复现，必须同时钉死四件事：**Python 依赖、LibreOffice、
+全套测试（114 项，含 §7 的 BUG-B1 回归 6 项）要可复现，必须同时钉死四件事：**Python 依赖、LibreOffice、
 官方模板的转换链、字体**。一键执行：`bash scripts/setup-test-env.sh`（幂等）。
 本文件同时记录 2026-10-21 的 30 项真模板失败逐项归因结论——归因表全文在
 修复工作笔记中，本文件只留结论与环境侧处置。
@@ -97,3 +97,28 @@ fonts-wqy-zenhei（文泉驿正黑）。
 其失败是幽灵样式污染了测试对 `styles["Heading 2"]` 的修改落点，同根同源）。
 字体映射不改变通过数——它钉死的是渲染确定性（无映射时 fc 默认回退甚至会选到
 Noto Sans CJK **HK** 字形），并消除了“换个回退字体结果又不一样”的不确定性。
+
+## 7. 复核轮（C 组）补记：BUG-B1 已在产品侧根治，归一化降为环境卫生
+
+2026-10-21 复核轮实测更新（§1–§6 的归因与数字仍成立，本节是其后进展）：
+
+- **BUG-B1 已修**：`guard/core.py` 新增名式不敏感的样式解析（`find_style`：
+  原生名 → 样式名归一 → styleId 归一，永不新建）与 `require_style`
+  （解析不到显式抛 `StyleResolutionError`）；`_ensure_style` 先解析、
+  确不存在才新建，且新建必须记入 fix 的 changes 清单。`features.py` 的
+  check_toc/fix_toc/rebuild_toc_result、脚注与表样式、标题 numPr 清理
+  全部改走同一解析。回归测试 `tests/test_style_resolution.py`（6 项，
+  对修复前代码全红、修复后全绿）。
+- **未归一化原始转换稿上的产品验收（实测）**：check 总数 199、
+  `toc_style_missing` 0（修复前误报 3）；fix 后可修复残留 **0**（修复前 86）；
+  产物无重复 styleId（修复前 Heading1/2/3 各有一份重复元素、另有
+  toc 1/2/3 与 footnote text 幽灵样式）。
+- **最新全套数字**：钉死环境（归一化模板）**109 过 / 5 败**（114 项，
+  5 败即 §5 已知红榜）；未归一化原始模板 **107 过 / 7 败**——多出的
+  2 败在测试代码自身：test_pku_features::test_toc 的注入函数与
+  test_pku_wps::test_heading_keep_next 直接用 python-docx 原生
+  `styles["Heading 1"]`/`styles["toc 1"]` 改文档，python-docx 原生查找
+  在 UI 名文档上同样落空（与 §5 的 `lab()` 同属测试侧脆弱点，待测试轮
+  改走 `core.find_style` 后可消）。产品代码路径在原始模板上已无失败。
+- 因此 `scripts/normalize-template-styles.py` 不再是正确性前提，
+  保留为环境卫生（让测试代码与外部工具按名查找也能工作）。

@@ -326,14 +326,55 @@ def _strip_para_direct(p, preserve=()):
         if el is not None and not (tag == "rPr" and el.find(qn("w:ins")) is not None):
             ppr.remove(el)
 
-def _ensure_style(doc, name):
-    from docx.enum.style import WD_STYLE_TYPE
-    try: return doc.styles[name]
-    except KeyError:
-        st = doc.styles.add_style(name, WD_STYLE_TYPE.PARAGRAPH); st.base_style = doc.styles["Normal"]; return st
+class StyleResolutionError(KeyError):
+    """样式在文档中解析不到（已按原生名、样式名与 styleId 两种名式查找）。"""
 
-def _apply_style_def(doc, r):
-    st = _ensure_style(doc, r["style"])
+def _style_key(s):
+    """样式名/styleId 的归一键：去非字母数字、小写。
+    Word 内部名 'heading 1'、LibreOffice 转换稿的 UI 名 'Heading 1' 与
+    styleId 'Heading1' 归一后同为 'heading1'，据此互相解析。"""
+    return re.sub(r"[^0-9a-z]+", "", str(s).lower()) if s else ""
+
+def find_style(doc, name):
+    """按名解析样式，兼容 Word 内部名与 LO 转换稿 UI 名、styleId。
+    找不到返回 None——本函数永不新建样式。"""
+    if not name: return None
+    try: return doc.styles[name]
+    except KeyError: pass
+    key = _style_key(name)
+    if not key: return None
+    from docx.enum.style import WD_STYLE_TYPE
+    fallback = None
+    for st in doc.styles:
+        if _style_key(st.name) == key or _style_key(st.style_id) == key:
+            if st.type == WD_STYLE_TYPE.PARAGRAPH: return st
+            if fallback is None: fallback = st
+    return fallback
+
+def require_style(doc, name):
+    """解析样式，解析不到显式报错——不许静默新建同名样式继续跑。"""
+    st = find_style(doc, name)
+    if st is None:
+        raise StyleResolutionError(f"样式「{name}」在文档中解析不到（已按原生名、样式名与 styleId 两种名式查找）；拒绝静默新建同名样式")
+    return st
+
+def _ensure_style(doc, name, changes=None):
+    """返回文档中已有的样式（名式不敏感，经 find_style 解析）。
+    样式确实不存在时才新建——这是 fix 给论文补齐规则包自定义样式的正道，
+    但新建一事必须显式记入 changes（若提供），绝不静默；样式已存在时
+    更不会因名式差异造出重复样式（BUG-B1：LO 转换稿上 toc/标题样式被
+    造出幽灵副本、修复写进无人使用的样式，残留 86 条且报成功）。"""
+    st = find_style(doc, name)
+    if st is not None: return st
+    from docx.enum.style import WD_STYLE_TYPE
+    st = doc.styles.add_style(name, WD_STYLE_TYPE.PARAGRAPH)
+    base = find_style(doc, "Normal")
+    if base is not None: st.base_style = base
+    if changes is not None: changes.append(f"新建样式「{name}」（文档中原本不存在）")
+    return st
+
+def _apply_style_def(doc, r, changes=None):
+    st = _ensure_style(doc, r["style"], changes)
     st.font.size = Pt(r["size_pt"])
     _set_fonts(st.element, r["east_asia"], r["latin"])
     if "bold" in r: st.font.bold = r["bold"]
@@ -387,15 +428,16 @@ def fix(src, dst, profile, update_toc=False):
         if "footer_distance_cm" in pg: sec.footer_distance = Cm(pg["footer_distance_cm"])
     changes.append("页边距、页眉页脚距边界按规则重设")
     for role, r in profile["styles"].items():
-        _apply_style_def(doc, r)
+        _apply_style_def(doc, r, changes)
     changes.append("样式定义按规则重写（含 eastAsia/ascii/hAnsi/cs 四槽位）")
     allowed = profile.get("drift", {}).get("allowed_direct", [])
     for p, role in roles(doc, profile):
         if role is None: continue
         r = profile["styles"][role]
-        if p.style.name != r["style"]:
-            changes.append(f"「{p.text[:12]}」样式 {p.style.name} → {r['style']}")
-            p.style = doc.styles[r["style"]]
+        rst = require_style(doc, r["style"])
+        if p.style.name != rst.name:
+            changes.append(f"「{p.text[:12]}」样式 {p.style.name} → {rst.name}")
+            p.style = rst
         _strip_para_direct(p, r.get("preserve_para", ()))
         role_allowed = [a for a in allowed if not (a == "bold" and "bold" in r)]
         for run in all_runs(p):

@@ -159,7 +159,7 @@ def fix_header_extra(doc, profile, changes):
     if not h: return
     firsts = sec_first_region(doc, profile)
     if "bottom_border_pt" in h:                     # 写在 Header 样式上，并清掉段落级边框
-        st = core._ensure_style(doc, "Header"); ppr = st.element.get_or_add_pPr()
+        st = core._ensure_style(doc, "Header", changes); ppr = st.element.get_or_add_pPr()
         old = ppr.find(qn("w:pBdr"))
         if old is not None: ppr.remove(old)
         bdr = OxmlElement("w:pBdr"); bt = OxmlElement("w:bottom")
@@ -184,8 +184,9 @@ def fix_header_extra(doc, profile, changes):
             continue
         for hdr in (s.header, s.even_page_header):
             if hdr.is_linked_to_previous: continue
+            hst = core.find_style(doc, "Header")
             for p in hdr.paragraphs:
-                if p.style.name != "Header": p.style = doc.styles["Header"]
+                if hst is not None and p.style.name != hst.name: p.style = hst
                 p.paragraph_format.first_line_indent = Pt(0)
                 ppr = p._p.pPr
                 if ppr is not None and ppr.find(qn("w:pBdr")) is not None: ppr.remove(ppr.find(qn("w:pBdr")))
@@ -823,8 +824,8 @@ def check_toc(doc, profile, out):
                 if ro == role and (p.style.name.lower().startswith("heading") or core.para_numpr(p)[0] not in (None, "0") and False):
                     out.append(_iss("toc_front_included", f"「{p.text.strip()}」", "不进入目录", f"样式 {p.style.name}（会进目录）", "目录从第一章开始，目录之前的内容及目录本身不列入", cl))
     for name, r in tc["styles"].items():
-        try: st = doc.styles[name]
-        except KeyError:
+        st = core.find_style(doc, name)          # 名式不敏感：'TOC 1' 与 'toc 1' 是同一样式，不许误报缺失
+        if st is None:
             out.append(_iss("toc_style_missing", name, "存在", "缺失", "目录样式", cl)); continue
         dummy = parse_xml(f'<w:p xmlns:w="{W}"><w:pPr><w:pStyle w:val="{st.style_id}"/></w:pPr><w:r><w:t>目录项Ab1</w:t></w:r></w:p>')
         core.check_para(doc, P(doc, dummy), r, f"目录样式 {name}", _adder(out))
@@ -840,9 +841,9 @@ def fix_toc(doc, profile, changes):
     if not tc: return
     for role, r in profile["styles"].items():          # 前置标题改用不进目录的样式
         if r.get("outline_body"):
-            core._apply_style_def(doc, r)
+            core._apply_style_def(doc, r, changes)
     for name, r in tc["styles"].items():
-        st = core._ensure_style(doc, name); rr = dict(r, style=name); core._apply_style_def(doc, rr)
+        st = core._ensure_style(doc, name, changes); rr = dict(r, style=name); core._apply_style_def(doc, rr, changes)
         st.paragraph_format.first_line_indent = Pt(0)
         st.paragraph_format.left_indent = Pt(r.get("left_indent_pt", 0))
         ts = st.paragraph_format.tab_stops
@@ -897,7 +898,7 @@ def rebuild_toc_result(doc, profile, pages):
             if fc.get(qn("w:fldCharType")) == "separate": seen_sep = True
         if c.find(qn("w:fldChar")) is not None and c.find(qn("w:fldChar")).get(qn("w:fldCharType")) == "end": begin_p.remove(c)
     entries = expected_toc(doc, profile)
-    style_ids = {lv: doc.styles[f"toc {lv}"].style_id for lv in (1, 2, 3)}
+    style_ids = {lv: core.require_style(doc, f"toc {lv}").style_id for lv in (1, 2, 3)}
     anchor = begin_p
     if not entries:
         r = OxmlElement("w:r"); fc = OxmlElement("w:fldChar"); fc.set(qn("w:fldCharType"), "end"); r.append(fc); begin_p.append(r); return
@@ -1012,7 +1013,7 @@ def fix_footnotes(doc, profile, changes):
     if not fn: return
     part = _footnote_part(doc)
     if part is None: return
-    st = core._ensure_style(doc, fn["style"]); core._apply_style_def(doc, dict(fn, style=fn["style"]))
+    st = core._ensure_style(doc, fn["style"], changes); core._apply_style_def(doc, dict(fn, style=fn["style"]), changes)
     pf = st.paragraph_format; h = Pt(fn["hanging_chars"] * fn["size_pt"])
     pf.left_indent = h; pf.first_line_indent = -h
     root = _fn_root(part); sid = st.style_id
@@ -1117,7 +1118,7 @@ def fix_tables(doc, profile, changes):
     tb = profile.get("tables")
     if not tb: return
     tcap = re.compile(profile["styles"]["table_caption"]["pattern"]); fcap = re.compile(profile["styles"]["figure_caption"]["pattern"])
-    st = core._ensure_style(doc, tb["cell"]["style"]); core._apply_style_def(doc, dict(tb["cell"], style=tb["cell"]["style"]))
+    st = core._ensure_style(doc, tb["cell"]["style"], changes); core._apply_style_def(doc, dict(tb["cell"], style=tb["cell"]["style"]), changes)
     st.paragraph_format.first_line_indent = Pt(0)
     for tbl in _body_tables(doc, profile):
         before, after = _neighbor(tbl, -1), _neighbor(tbl, +1)
@@ -1344,8 +1345,8 @@ def fix_numbering(doc, profile, changes):
         _set_numpr(p, nid, lv_of[role]); n += 1
     # 样式级 numPr（模板自带的、未定义的列表）去掉，避免叠加编号
     for role in lv_of:
-        try: st = doc.styles[profile["styles"][role]["style"]]
-        except KeyError: continue
+        st = core.find_style(doc, profile["styles"][role]["style"])   # 名式不敏感：解析不到才跳过，不许把名式差异当缺失
+        if st is None: continue
         ppr = st.element.pPr
         if ppr is not None and ppr.find(qn("w:numPr")) is not None: ppr.remove(ppr.find(qn("w:numPr")))
     changes.append(f"标题自动编号：{n} 个标题改为多级列表编号（第X章 / x.y / x.y.z），去掉手写编号")
@@ -1453,7 +1454,7 @@ def _ensure_default_para_style(doc):
     """LibreOffice 转出的文档可能没有 w:default="1" 的段落样式，无 pStyle 的段落会找不到样式。"""
     from docx.enum.style import WD_STYLE_TYPE
     if doc.styles.default(WD_STYLE_TYPE.PARAGRAPH) is None:
-        doc.styles["Normal"].element.set(qn("w:default"), "1")
+        core.require_style(doc, "Normal").element.set(qn("w:default"), "1")
 
 def fix_post(doc, profile, changes):
     _ensure_default_para_style(doc)

@@ -109,7 +109,7 @@ Clone this repository into your agent's skills directory (for Claude Code, e.g. 
 
 ## How far to trust it: tests and real-world checks
 
-**Test suite** (the full local `pytest` run: **100 passed**, 0 failed, 0 skipped):
+**Test suite** (114 tests in the full local `pytest` run; in the [pinned environment](docs/test-environment.md) — official template + font substitution map — the measured result is **109 passed / 5 failed**, and all 5 failures are attributed and listed as known-red there: 4 are pagination-metric differences from missing proprietary fonts (SimSun/SimHei/FangSong), 1 is a test helper's assumption about PDF text-block order. Without the template in `local-assets/`, the 54 template-dependent tests skip):
 
 - **Injected drift**: 9 kinds of real-world drift (direct formatting overrides, CJK/Latin font mismatch, theme fonts, foreign pasted styles, line spacing/margins, header, captions, headings, references) are injected into a compliant document; each must be detected, and after fixing every paragraph must match the golden copy. All nine together, plus tracked changes and comments, must also come back clean;
 - **Tracked changes and comments**: `fix` reformats text inside tracked insertions and keeps the revision marks; `review` covers insertions, deletions, moves, formatting changes, and paragraph-mark revisions; `reply` attaches replies under the parent comment;
@@ -118,7 +118,7 @@ Clone this repository into your agent's skills directory (for Claude Code, e.g. 
 - **PKU official template self-check**: on the official template (.doc converted to .docx with LibreOffice), the current rule pack reports 199 issues, **all attributed**; the test fails if a new unattributed issue appears. 154 are "template deviates from the guide"; the rest are template structure, the template's own notes (unverified sample references, an empty placeholder TOC), template placeholder content, rule interpretations still to be confirmed (2), and environment compatibility;
 - **`diff`**: injected drift is always reported, a document compared with itself yields nothing, and a fixed document compared with the golden copy yields nothing.
 
-CI (GitHub Actions) installs LibreOffice and runs the suite. The official PKU template is not in the repository, so the 54 tests that need it are skipped in CI; the other 46 run normally.
+CI (GitHub Actions) installs LibreOffice and runs the suite. The official PKU template is not in the repository, so the 54 tests that need it are skipped in CI; the other 60 run normally.
 
 **Real-world check in WPS** (WPS for Linux, without SimSun/SimHei/FangSong, substituted by Noto CJK and others): the cover fits on one page, there are no blank pages, the originality declaration stays out of the TOC, TOC page numbers are correct, heading numbers and odd/even headers are correct, and the declaration's signature block no longer lands on a page of its own. The visible pages match the LibreOffice layout page for page.
 
